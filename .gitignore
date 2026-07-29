@@ -1,0 +1,15 @@
+# 비밀키 / 환경설정
+.env
+
+# 가상환경
+.venv/
+
+# 파이썬 캐시
+__pycache__/
+*.pyc
+
+# Jupyter 체크포인트
+.ipynb_checkpoints/
+
+# 런타임 생성 데이터 (관리자 대시보드 SQLite DB) - 실행 중 자동 생성됨, 커밋 불필요
+data/
