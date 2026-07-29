@@ -2,6 +2,7 @@ import uuid
 
 import streamlit as st
 
+from core import geocode as geocode_module
 from core.db import upsert_report
 from core.geocode import geocode_location
 from core.guidelines import GUIDELINE_LABEL_KO, GUIDELINES_KO, validate_disaster_type
@@ -87,10 +88,13 @@ def run_pipeline(detected_language: str, original_text: str, translated_text: st
         }
 
     lat, lon = None, None
+    geocode_error = None
     if analysis.get("location"):
         coords = geocode_location(analysis["location"])
         if coords:
             lat, lon = coords
+        else:
+            geocode_error = geocode_module.last_error
 
     disaster_type = validate_disaster_type(analysis.get("disaster_type"))
     guideline = None
@@ -140,6 +144,7 @@ def run_pipeline(detected_language: str, original_text: str, translated_text: st
         "report": report,
         "lat": lat,
         "lon": lon,
+        "geocode_error": geocode_error,
         "guideline": guideline,
         "guideline_error": guideline_error,
     }
@@ -251,6 +256,9 @@ if st.session_state.result:
         col1.metric("위치", result["location"] or "확인 필요")
         col2.metric("인원", result["people_count"] or "확인 필요")
         col3.metric("피해 상황", result["damage_status"] or "확인 필요")
+
+        if result.get("location") and result.get("lat") is None and result.get("geocode_error"):
+            st.caption(f"⚠️ 지도 좌표 변환 실패 (관리자 대시보드에 표시 안 됨): {result['geocode_error']}")
 
         missing = result.get("missing_fields") or []
         if missing:
